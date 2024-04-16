@@ -31,14 +31,14 @@ def train_epoch(logger, loader, model, optimizer, scheduler, batch_accumulation)
     time_start = time.time()
     for iter, batch in enumerate(loader):
         batch.split = 'train'
-        batch.to(torch.device(cfg.device))
+        batch.to(torch.device(cfg.accelerator))
         pred, true = model(batch)
         if cfg.dataset.name == 'ogbg-code2':
             loss, pred_score = subtoken_cross_entropy(pred, true)
             _true = true
             _pred = pred_score
         elif cfg.dataset.name == 'ogbn-arxiv':
-            split_idx = loader.dataset.split_idx['train'].to(torch.device(cfg.device))
+            split_idx = loader.dataset.split_idx['train'].to(torch.device(cfg.accelerator))
             loss, pred_score = arxiv_cross_entropy(pred, true, split_idx)
             _true = true[split_idx].detach().to('cpu', non_blocking=True)
             _pred = pred_score.detach().to('cpu', non_blocking=True)
@@ -69,7 +69,7 @@ def eval_epoch(logger, loader, model, split='val'):
     time_start = time.time()
     for batch in loader:
         batch.split = split
-        batch.to(torch.device(cfg.device))
+        batch.to(torch.device(cfg.accelerator))
         if cfg.gnn.head == 'inductive_edge':
             pred, true, extra_stats = model(batch)
         else:
@@ -80,7 +80,7 @@ def eval_epoch(logger, loader, model, split='val'):
             _true = true
             _pred = pred_score
         elif cfg.dataset.name == 'ogbn-arxiv':
-            index_split = loader.dataset.split_idx[split].to(torch.device(cfg.device))
+            index_split = loader.dataset.split_idx[split].to(torch.device(cfg.accelerator))
             loss, pred_score = arxiv_cross_entropy(pred, true, index_split)
             _true = true[index_split].detach().to('cpu', non_blocking=True)
             _pred = pred_score.detach().to('cpu', non_blocking=True)

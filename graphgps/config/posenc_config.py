@@ -14,6 +14,7 @@ def set_cfg_posenc(cfg):
     cfg.posenc_HKdiagSE = CN()
     cfg.posenc_ElstaticSE = CN()
     cfg.posenc_EquivStableLapPE = CN()
+    cfg.posenc_Node2Vec = CN()
 
     # Effective Resistance Embeddings
     cfg.posenc_ERN = CN() #Effective Resistance for Nodes
@@ -22,7 +23,7 @@ def set_cfg_posenc(cfg):
     # Common arguments to all PE types.
     for name in ['posenc_LapPE', 'posenc_SignNet',
                  'posenc_RWSE', 'posenc_HKdiagSE', 'posenc_ElstaticSE',
-                  'posenc_ERN', 'posenc_ERE']:
+                  'posenc_ERN', 'posenc_ERE', 'posenc_Node2Vec']:
         pecfg = getattr(cfg, name)
 
         # Use extended positional encodings
@@ -97,3 +98,13 @@ def set_cfg_posenc(cfg):
 
     # To be set during the calculations:
     cfg.posenc_ERN.er_dim = 'none'
+
+    #add cfg of node2vec
+    cfg.posenc_Node2Vec.p = 1
+    cfg.posenc_Node2Vec.q = 1
+    
+    cfg.posenc_Node2Vec.num_walks = 10
+    cfg.posenc_Node2Vec.walk_length = 80
+    
+    cfg.posenc_Node2Vec.window_size = 10
+    cfg.posenc_Node2Vec.iter = 1

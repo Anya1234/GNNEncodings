@@ -14,6 +14,7 @@ from graphgps.encoder.type_dict_encoder import TypeDictNodeEncoder
 from graphgps.encoder.linear_node_encoder import LinearNodeEncoder
 from graphgps.encoder.equivstable_laplace_pos_encoder import EquivStableLapPENodeEncoder
 from graphgps.encoder.ER_node_encoder import ERNodeEncoder
+from graphgps.encoder.node2vec_pos_encoder import Node2VecEncoder
 
 
 def concat_node_encoders(encoder_classes, pe_enc_names):
@@ -114,7 +115,8 @@ pe_encs = {'LapPE': LapPENodeEncoder,
            'ElstaticSE': ElstaticSENodeEncoder,
            'SignNet': SignNetNodeEncoder,
            'EquivStableLapPE': EquivStableLapPENodeEncoder,
-           'ERN': ERNodeEncoder}
+           'ERN': ERNodeEncoder,
+           'Node2Vec': Node2VecEncoder}
 
 # Concat dataset-specific and PE encoders.
 for ds_enc_name, ds_enc_cls in ds_encs.items():

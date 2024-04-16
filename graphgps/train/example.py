@@ -19,7 +19,7 @@ def train_epoch(logger, loader, model, optimizer, scheduler):
     time_start = time.time()
     for batch in loader:
         optimizer.zero_grad()
-        batch.to(torch.device(cfg.device))
+        batch.to(torch.device(cfg.accelerator))
         pred, true = model(batch)
         loss, pred_score = compute_loss(pred, true)
         loss.backward()
@@ -37,7 +37,7 @@ def eval_epoch(logger, loader, model):
     model.eval()
     time_start = time.time()
     for batch in loader:
-        batch.to(torch.device(cfg.device))
+        batch.to(torch.device(cfg.accelerator))
         pred, true = model(batch)
         loss, pred_score = compute_loss(pred, true)
         logger.update_stats(true=true.detach().cpu(),

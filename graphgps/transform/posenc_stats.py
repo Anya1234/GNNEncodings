@@ -8,6 +8,7 @@ from torch_geometric.utils import (get_laplacian, to_scipy_sparse_matrix,
                                    to_undirected, to_dense_adj)
 from torch_geometric.utils.num_nodes import maybe_num_nodes
 from torch_scatter import scatter_add
+from .node_to_vec import learn_embeddings
 
 
 def compute_posenc_stats(data, pe_types, is_undirected, cfg):
@@ -32,7 +33,7 @@ def compute_posenc_stats(data, pe_types, is_undirected, cfg):
     """
     # Verify PE types.
     for t in pe_types:
-        if t not in ['LapPE', 'EquivStableLapPE', 'SignNet', 'RWSE', 'HKdiagSE', 'HKfullPE', 'ElstaticSE', 'ERN']:
+        if t not in ['LapPE', 'EquivStableLapPE', 'SignNet', 'RWSE', 'HKdiagSE', 'HKfullPE', 'ElstaticSE', 'ERN', 'Node2Vec']:
             raise ValueError(f"Unexpected PE stats selection {t} in {pe_types}")
 
     # Basic preprocessing of the input graph.
@@ -133,6 +134,10 @@ def compute_posenc_stats(data, pe_types, is_undirected, cfg):
     if 'ElstaticSE' in pe_types:
         elstatic = get_electrostatic_function_encoding(undir_edge_index, N)
         data.pestat_ElstaticSE = elstatic
+
+    if 'Node2Vec' in pe_types:
+        embeddings = learn_embeddings(data, cfg)
+        data.Node2VecEmb = embeddings
 
     return data
 
