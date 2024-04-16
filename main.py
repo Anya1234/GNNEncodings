@@ -8,7 +8,7 @@ from graphgps.optimizer.extra_optimizers import ExtendedSchedulerConfig
 
 from torch_geometric.graphgym.cmd_args import parse_args
 from torch_geometric.graphgym.config import (cfg, dump_cfg,
-                                             set_agg_dir, set_cfg, load_cfg,
+                                             set_cfg, load_cfg,
                                              makedirs_rm_exist)
 from torch_geometric.graphgym.loader import create_loader
 from torch_geometric.graphgym.logger import set_printing
@@ -114,6 +114,10 @@ if __name__ == '__main__':
     args = parse_args()
     # Load config file
     set_cfg(cfg)
+
+    # TODO: Hardcoded cfg field, adapt code
+    cfg.train.mode = "default"
+    
     load_cfg(cfg, args)
     custom_set_out_dir(cfg, args.cfg_file, cfg.name_tag)
     dump_cfg(cfg)
