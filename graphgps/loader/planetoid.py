@@ -1,3 +1,4 @@
+from math import exp
 import os.path as osp
 from typing import Callable, List, Optional
 
@@ -165,6 +166,15 @@ class Planetoid(InMemoryDataset):
 
         data = data if self.pre_transform is None else self.pre_transform(data)
         torch.save(self.collate([data]), self.processed_paths[0])
+
+    def get_idx_split(self):
+        train =  self.data.train_mask.nonzero().flatten()
+        val =  self.data.val_mask.nonzero().flatten()
+        test =  self.data.test_mask.nonzero().flatten()
+        return {"train": train,
+                "val": val,
+                "test": test}
+        
 
     def __repr__(self) -> str:
         return f'{self.name}()'

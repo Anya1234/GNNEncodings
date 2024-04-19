@@ -21,7 +21,7 @@ prep:
   exp_deg: 3 # Algorithm will use 3 permutations or 3 Hamiltonian cycles, so actual degree will be 6
   add_self_loops: true
   num_virt_node: 0
-  train_percent: 0.6
+  train_percent: 0.1
 posenc_RWSE:
   enable: False
   kernel:

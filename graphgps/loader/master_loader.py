@@ -5,6 +5,7 @@ import math
 from functools import partial
 
 import numpy as np
+from sympy import EX
 import torch
 import torch_geometric.transforms as T
 from numpy.random import default_rng
@@ -134,6 +135,8 @@ def load_dataset_master(format, name, dataset_dir):
         elif pyg_dataset_id == 'Planetoid':
             # dataset = Planetoid(dataset_dir, name)
             dataset = Planetoid(dataset_dir, name, split='random', train_percent= cfg.prep.train_percent)
+            split_dict = dataset.get_idx_split()
+            dataset.split_idx = split_dict
             # dataset = Planetoid(dataset_dir, name, split='random', num_train_per_class = 4725, num_val = 1575, num_test = 1575)
             # Citeseer
             # dataset = Planetoid(dataset_dir, name, split='random', num_train_per_class = 1996, num_val = 665, num_test = 666)
