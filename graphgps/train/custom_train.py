@@ -37,7 +37,7 @@ def train_epoch(logger, loader, model, optimizer, scheduler, batch_accumulation)
             loss, pred_score = subtoken_cross_entropy(pred, true)
             _true = true
             _pred = pred_score
-        elif cfg.dataset.name == 'ogbn-arxiv' or cfg.dataset.name == 'Cora': 
+        elif cfg.dataset.name == 'ogbn-arxiv' or cfg.dataset.name == 'Cora' or cfg.dataset.name == 'CiteSeer': 
             split_idx = loader.dataset.split_idx['train'].to(torch.device(cfg.accelerator))
             loss, pred_score = arxiv_cross_entropy(pred, true, split_idx)
             _true = true[split_idx].detach().to('cpu', non_blocking=True)
