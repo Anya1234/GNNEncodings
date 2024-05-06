@@ -10,8 +10,8 @@ dataset:
   task: node
   task_type: classification
   transductive: False
-  node_encoder: False
-  node_encoder_name: LinearNode
+  node_encoder: True
+  node_encoder_name: Node2VecLearnable
   node_encoder_bn: False
   edge_encoder: True
   edge_encoder_name: DummyEdge
@@ -21,14 +21,11 @@ prep:
   exp_deg: 3 # Algorithm will use 3 permutations or 3 Hamiltonian cycles, so actual degree will be 6
   add_self_loops: true
   num_virt_node: 0
-  train_percent: 0.1
-posenc_RWSE:
-  enable: False
-  kernel:
-    times_func: range(1,17)
-  model: Linear
+  train_percent: 0.6
+posenc_Node2VecLearnable:
+  enable: True
   dim_pe: 16
-  raw_norm_type: BatchNorm
+  num_walks: 5
 train:
   mode: custom
   batch_size: 1
@@ -66,6 +63,6 @@ optim:
   optimizer: adamW
   weight_decay: 1e-3
   base_lr: 0.001
-  max_epoch: 600
+  max_epoch: 100
   scheduler: cosine_with_warmup
   num_warmup_epochs: 5

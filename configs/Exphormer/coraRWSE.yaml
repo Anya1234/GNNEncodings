@@ -11,7 +11,7 @@ dataset:
   task_type: classification
   transductive: False
   node_encoder: True
-  node_encoder_name: Node2Vec
+  node_encoder_name: RWSE
   node_encoder_bn: False
   edge_encoder: True
   edge_encoder_name: DummyEdge
@@ -21,10 +21,14 @@ prep:
   exp_deg: 3 # Algorithm will use 3 permutations or 3 Hamiltonian cycles, so actual degree will be 6
   add_self_loops: true
   num_virt_node: 0
-  train_percent: 0.6
-posenc_Node2Vec:
+  train_percent: 0.1
+posenc_RWSE:
   enable: True
+  kernel:
+    times_func: range(1,17)
+  model: Linear
   dim_pe: 16
+  raw_norm_type: BatchNorm
 train:
   mode: custom
   batch_size: 1

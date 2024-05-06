@@ -11,7 +11,7 @@ dataset:
   task_type: classification
   transductive: False
   node_encoder: True
-  node_encoder_name: Node2Vec
+  node_encoder_name: Learnable
   node_encoder_bn: False
   edge_encoder: True
   edge_encoder_name: DummyEdge
@@ -22,9 +22,17 @@ prep:
   add_self_loops: true
   num_virt_node: 0
   train_percent: 0.6
-posenc_Node2Vec:
+posenc_Learnable:
   enable: True
   dim_pe: 16
+  raw_norm_type: BatchNorm
+posenc_RWSE:
+  enable: False
+  kernel:
+    times_func: range(1,17)
+  model: Linear
+  dim_pe: 16
+  raw_norm_type: BatchNorm
 train:
   mode: custom
   batch_size: 1

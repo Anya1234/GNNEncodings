@@ -6,7 +6,7 @@ wandb:
   entity: expand-gnns
 dataset:
   format: PyG-Planetoid
-  name: Cora
+  name: CiteSeer
   task: node
   task_type: classification
   transductive: False
@@ -25,6 +25,13 @@ prep:
 posenc_Node2Vec:
   enable: True
   dim_pe: 16
+posenc_RWSE:
+  enable: False
+  kernel:
+    times_func: range(1,17)
+  model: Linear
+  dim_pe: 16
+  raw_norm_type: BatchNorm
 train:
   mode: custom
   batch_size: 1

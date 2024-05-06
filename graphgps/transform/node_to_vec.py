@@ -71,7 +71,7 @@ class Graph():
 			else:
 				unnormalized_probs.append(G[dst][dst_nbr]['weight']/q)
 		norm_const = sum(unnormalized_probs)
-		normalized_probs =  [float(u_prob)/norm_const for u_prob in unnormalized_probs]
+		normalized_probs = [float(u_prob)/norm_const for u_prob in unnormalized_probs]
 
 		return alias_setup(normalized_probs)
 
@@ -150,17 +150,25 @@ def alias_draw(J, q):
 	else:
 	    return J[kk]
 
+def norm_vectors(x):
+    norms = torch.linalg.vector_norm(x, dim=1)
+    i = torch.argmin(norms)
+    x_normed = x - x[i, :].reshape(1, -1)
+    norms = torch.linalg.vector_norm(x_normed, dim=1)
+    j = torch.argmax(norms)
+    x_normed /= norms[j]
+    return x_normed
 
 def learn_embeddings(data, cfg):
 	'''
 	Learn embeddings by optimizing the Skipgram objective using SGD.
 	'''
 	logging.disable()
-	nx_data = to_networkx(data)
+	nx_data = to_networkx(data, to_undirected=(not cfg.posenc_Node2Vec.is_directed))
 	for edge in nx_data.edges():
 			nx_data[edge[0]][edge[1]]['weight'] = 1
 
-	G = Graph(nx_G=nx_data, is_directed=True, p=cfg.posenc_Node2Vec.p, q=cfg.posenc_Node2Vec.q)
+	G = Graph(nx_G=nx_data, is_directed=cfg.posenc_Node2Vec.is_directed, p=cfg.posenc_Node2Vec.p, q=cfg.posenc_Node2Vec.q)
 	G.preprocess_transition_probs()
 
 	walks = G.simulate_walks(cfg.posenc_Node2Vec.num_walks, cfg.posenc_Node2Vec.walk_length)
@@ -168,4 +176,8 @@ def learn_embeddings(data, cfg):
 
 	model = Word2Vec(walks, vector_size = cfg.posenc_Node2Vec.dim_pe, window=cfg.posenc_Node2Vec.window_size, min_count=0, sg=1, workers=cfg.num_workers)
 	logging.disable(logging.DEBUG)
-	return torch.from_numpy(model.wv.vectors)
+
+	if cfg.posenc_Node2Vec.norm:
+		return norm_vectors(torch.from_numpy(model.wv.vectors))
+	else:
+		return torch.from_numpy(model.wv.vectors)

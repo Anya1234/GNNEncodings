@@ -33,7 +33,7 @@ def compute_posenc_stats(data, pe_types, is_undirected, cfg):
     """
     # Verify PE types.
     for t in pe_types:
-        if t not in ['LapPE', 'EquivStableLapPE', 'SignNet', 'RWSE', 'HKdiagSE', 'HKfullPE', 'ElstaticSE', 'ERN', 'Node2Vec']:
+        if t not in ['LapPE', 'EquivStableLapPE', 'SignNet', 'RWSE', 'HKdiagSE', 'HKfullPE', 'ElstaticSE', 'ERN', 'Node2Vec', 'Node2VecLearnable', 'Learnable']:
             raise ValueError(f"Unexpected PE stats selection {t} in {pe_types}")
 
     # Basic preprocessing of the input graph.
@@ -138,6 +138,13 @@ def compute_posenc_stats(data, pe_types, is_undirected, cfg):
     if 'Node2Vec' in pe_types:
         embeddings = learn_embeddings(data, cfg)
         data.Node2VecEmb = embeddings
+
+    if 'Node2VecLearnable' in pe_types:
+        cfg.posenc_Node2VecLearnable.num_nodes = data.num_nodes
+        cfg.posenc_Node2VecLearnable.edge_index = data.edge_index.tolist()
+    
+    if 'Learnable' in pe_types:
+        cfg.posenc_Learnable.num_nodes = data.num_nodes
 
     return data
 
