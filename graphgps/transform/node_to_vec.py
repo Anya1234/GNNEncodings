@@ -2,9 +2,14 @@ import numpy as np
 import networkx as nx
 import random
 from gensim.models import Word2Vec
+from collections.abc import Iterable
+from torch_geometric.nn.models import Node2Vec
 from torch_geometric.utils.convert import to_networkx
 import logging
 import torch
+import tempfile
+
+from torch_sparse import random_walk
 
 
 class Graph():
@@ -159,25 +164,119 @@ def norm_vectors(x):
     x_normed /= norms[j]
     return x_normed
 
+# class walksLoader(Iterable):
+#     def __init__(self, rw):
+#         self.rw = rw
+#         self.i = 0
+
+#     def __iter__(self):
+#         self.i = 0
+#         return self
+    
+#     def __next__(self):
+#         if self.i >= self.rw.shape[0]:
+#             self.i = 0
+#             raise StopIteration
+#         i = self.i
+#         self.i += 1
+#         return list(map(str, self.rw[i].tolist()))
+	
+class walksLoader:
+    def __init__(self, rw, cfg):
+        self.rw = rw
+        self.i = 0
+        self.walk_length = cfg.posenc_Node2Vec.walk_length
+        self.context_size = cfg.posenc_Node2Vec.window_size
+        self.num_walks_per_rw = 1 + self.walk_length + 1 - self.context_size
+
+    def __iter__(self):
+        self.i = 0
+        self.j = 0
+        return self
+    
+    def __next__(self):
+        i = self.i
+        j = self.j
+
+        if self.j >= self.num_walks_per_rw - 1:
+            self.i += 1
+            self.j = 0
+        else:
+            self.j += 1
+
+        if i >= self.rw.shape[0] - 1 and j >= self.num_walks_per_rw - 1:
+            self.i = 0
+            self.j = 0
+            raise StopIteration
+
+        assert i < self.rw.shape[0]
+        assert j <  self.num_walks_per_rw
+        return list(map(str, self.rw[i, j:j + self.context_size].tolist()))
+
+class WalksIterable:
+    def __init__(self, loader):
+        self.loader = loader
+
+    def __iter__(self):
+        for walks, _ in self.loader:
+            for walk in walks:
+                yield list(map(str, walk.tolist()))
+
 def learn_embeddings(data, cfg):
 	'''
 	Learn embeddings by optimizing the Skipgram objective using SGD.
 	'''
-	logging.disable()
-	nx_data = to_networkx(data, to_undirected=(not cfg.posenc_Node2Vec.is_directed))
-	for edge in nx_data.edges():
-			nx_data[edge[0]][edge[1]]['weight'] = 1
+	model = Node2Vec(edge_index=data.edge_index,
+                              embedding_dim=cfg.posenc_Node2Vec.dim_pe,
+                              walk_length=cfg.posenc_Node2Vec.walk_length,
+                              context_size=cfg.posenc_Node2Vec.window_size,
+                              walks_per_node=cfg.posenc_Node2Vec.num_walks,
+                              q=cfg.posenc_Node2Vec.q,
+                              p=cfg.posenc_Node2Vec.p,
+                              num_nodes=data.num_nodes,
+                              num_negative_samples=cfg.posenc_Node2Vec.num_negative_samples)
 
-	G = Graph(nx_G=nx_data, is_directed=cfg.posenc_Node2Vec.is_directed, p=cfg.posenc_Node2Vec.p, q=cfg.posenc_Node2Vec.q)
-	G.preprocess_transition_probs()
+	loader = model.loader(batch_size=128, shuffle=True, num_workers=cfg.num_workers)
+	walks = torch.cat([walks for walks, _ in loader], axis=0).tolist()
 
-	walks = G.simulate_walks(cfg.posenc_Node2Vec.num_walks, cfg.posenc_Node2Vec.walk_length)
-	walks = [list(map(str, walk)) for walk in walks]
-
-	model = Word2Vec(walks, vector_size = cfg.posenc_Node2Vec.dim_pe, window=cfg.posenc_Node2Vec.window_size, min_count=0, sg=1, workers=cfg.num_workers)
-	logging.disable(logging.DEBUG)
+	wv_model = Word2Vec(walks, vector_size = cfg.posenc_Node2Vec.dim_pe, window=cfg.posenc_Node2Vec.window_size, min_count=0, sg=1, workers=cfg.num_workers)
 
 	if cfg.posenc_Node2Vec.norm:
-		return norm_vectors(torch.from_numpy(model.wv.vectors))
+		return norm_vectors(torch.from_numpy(wv_model.wv.vectors))
 	else:
-		return torch.from_numpy(model.wv.vectors)
+		return torch.from_numpy(wv_model.wv.vectors)
+
+# def learn_embeddings(data, cfg):
+# 	model = Node2Vec(edge_index=data.edge_index,
+#                               embedding_dim=cfg.posenc_Node2Vec.dim_pe,
+#                               walk_length=cfg.posenc_Node2Vec.walk_length,
+#                               context_size=cfg.posenc_Node2Vec.window_size,
+#                               walks_per_node=cfg.posenc_Node2Vec.num_walks,
+#                               q=cfg.posenc_Node2Vec.q,
+#                               p=cfg.posenc_Node2Vec.p,
+#                               num_nodes=data.num_nodes,
+#                               num_negative_samples=cfg.posenc_Node2Vec.num_negative_samples).to(cfg.accelerator)
+# 	model.train()
+
+# 	loader = model.loader(batch_size=128, shuffle=True, num_workers=cfg.num_workers)
+# 	optimizer = torch.optim.Adam(list(model.parameters()), lr=0.025)
+# 	# scheduler = torch.optim.lr_scheduler.LinearLR(optimizer, start_factor=1.0,  end_factor=0.0001/0.025, total_iters=len(loader))
+# 	total_loss = 0
+# 	print(cfg.accelerator)
+# 	for epoch in range(2):
+# 		for pos_rw, neg_rw in loader:
+# 			optimizer.zero_grad()
+# 			loss = model.loss(pos_rw.to(cfg.accelerator), neg_rw.to( cfg.accelerator))
+# 			loss.backward()
+# 			optimizer.step()
+# 			# scheduler.step()
+# 			total_loss += loss.item()
+
+# 	embeddings = model().detach().cpu()
+
+# 	if cfg.posenc_Node2Vec.norm:
+# 		return norm_vectors(embeddings)
+# 	else:
+# 		return embeddings
+
+	

@@ -112,6 +112,7 @@ def set_cfg_posenc(cfg):
     cfg.posenc_Node2Vec.iter = 1
     cfg.posenc_Node2Vec.norm = False
     cfg.posenc_Node2Vec.is_directed = True
+    cfg.posenc_Node2Vec.num_negative_samples = 5
 
     #add cfg of node2vec
     cfg.posenc_Node2VecLearnable.p = 1

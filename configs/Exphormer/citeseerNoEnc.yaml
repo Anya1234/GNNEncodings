@@ -33,7 +33,7 @@ model:
   edge_decoding: dot
   graph_pooling: add
 gt:
-  layer_type: CustomGatedGCN+Exphormer # some other options: Exphormer,CustomGatedGCN+Exphormer,  GINE+Exphormer, GINE, GINE__exp
+  layer_type: GCN+Exphormer # some other options: Exphormer,CustomGatedGCN+Exphormer,  GINE+Exphormer, GINE, GINE__exp
   layers: 4
   n_heads: 2
   dim_hidden: 80  # `gt.dim_hidden` must match `gnn.dim_inner`
@@ -59,6 +59,6 @@ optim:
   optimizer: adamW
   weight_decay: 1e-3
   base_lr: 0.001
-  max_epoch: 100
+  max_epoch: 150
   scheduler: cosine_with_warmup
   num_warmup_epochs: 5
