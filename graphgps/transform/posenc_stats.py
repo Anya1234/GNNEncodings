@@ -141,7 +141,6 @@ def compute_posenc_stats(data, pe_types, is_undirected, cfg):
 
     if 'Node2VecLearnable' in pe_types:
         cfg.posenc_Node2VecLearnable.num_nodes = data.num_nodes
-        cfg.posenc_Node2VecLearnable.edge_index = data.edge_index.tolist()
     
     if 'Learnable' in pe_types:
         cfg.posenc_Learnable.num_nodes = data.num_nodes

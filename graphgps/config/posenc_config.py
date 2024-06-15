@@ -102,8 +102,8 @@ def set_cfg_posenc(cfg):
     cfg.posenc_ERN.er_dim = 'none'
 
     #add cfg of node2vec
-    cfg.posenc_Node2Vec.p = 1
-    cfg.posenc_Node2Vec.q = 1
+    cfg.posenc_Node2Vec.p = 1.0
+    cfg.posenc_Node2Vec.q = 1.0
     
     cfg.posenc_Node2Vec.num_walks = 10
     cfg.posenc_Node2Vec.walk_length = 80
@@ -113,6 +113,7 @@ def set_cfg_posenc(cfg):
     cfg.posenc_Node2Vec.norm = False
     cfg.posenc_Node2Vec.is_directed = True
     cfg.posenc_Node2Vec.num_negative_samples = 5
+    cfg.posenc_Node2Vec.hid_dim = 128
 
     #add cfg of node2vec
     cfg.posenc_Node2VecLearnable.p = 1
@@ -122,10 +123,9 @@ def set_cfg_posenc(cfg):
     cfg.posenc_Node2VecLearnable.walk_length = 80
     
     cfg.posenc_Node2VecLearnable.window_size = 10
-    # cfg.posenc_Node2VecLearnable.norm = False
+    cfg.posenc_Node2VecLearnable.norm = False
     # cfg.posenc_Node2VecLearnable.is_directed = True
 
     cfg.posenc_Node2VecLearnable.num_nodes = 0
-    cfg.posenc_Node2VecLearnable.edge_index = None
 
     cfg.posenc_Learnable.num_nodes = 0

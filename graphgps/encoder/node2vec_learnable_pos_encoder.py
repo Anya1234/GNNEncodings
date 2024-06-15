@@ -19,7 +19,7 @@ class Node2VecLearnableEncoder(nn.Module):
         self.dim_pe= self.pecfg.dim_pe
         self.num_nodes = cfg.posenc_Node2VecLearnable.num_nodes
         self.model = None
-        self.num_negative_samples = 1
+        self.num_negative_samples = 5
     
         if self.pecfg.model == "Linear":
             self.encoder = nn.Linear(self.dim_pe, self.dim_pe)
@@ -37,37 +37,38 @@ class Node2VecLearnableEncoder(nn.Module):
         else:
             self.raw_norm = None
 
-    def init_model(self, batch):
-        self.model = Node2Vec(edge_index=batch.edge_index,
+    def init_model(self, cfg, edge_index):
+        self.model = Node2Vec(edge_index=edge_index,
                               embedding_dim=self.dim_pe,
                               walk_length=self.pecfg.walk_length,
                               context_size=self.pecfg.window_size,
-                              walks_per_node=self.pecfg.num_walks,
+                              walks_per_node=1,
                               q=self.pecfg.q,
                               p=self.pecfg.p,
                               num_nodes=self.num_nodes,
                               num_negative_samples=self.num_negative_samples)
-        self.model = self.model.to(batch.x.device)
+        self.model = self.model.to(cfg.accelerator)
+        self.loader =  DataLoader(list(range(self.num_nodes)) * self.pecfg.num_walks, collate_fn=self.model.sample, batch_size=128, shuffle=True)
+        self.loader_iter = iter(self.loader)
+    
+    def get_next_data(self):
+        try:
+            data = next(self.loader_iter)
+        except StopIteration:
+            self.loader_iter = iter(self.loader)
+            data  = next(self.loader_iter)
+        return data[0], data[1]
 
     def forward(self, batch):
         if self.model is None:
-            self.init_model(batch)
+            self.init_model(cfg, batch.edge_index)
 
-        loader = self.model.loader()
-        pos_rw = []
-        neg_rw = []
-        for data in loader:
-            pos_rw.append(data[0])
-            neg_rw.append(data[1])
-        pos_rw = torch.cat(pos_rw, axis=0)
-        neg_rw = torch.cat(neg_rw, axis=0)
-        device = batch.x.device
+        pos_rw, neg_rw = self.get_next_data()
         pos_enc = self.model.forward()
-        # pos_rw, neg_rw = next(self.loader_iter)
-        pos_rw = pos_rw.to(device)
-        neg_rw = neg_rw.to(device)
-        pos_rw.to()
-        batch.node2vec_loss = self.model.loss(pos_rw, neg_rw)
+        batch.node2vec_loss = self.model.loss(pos_rw.to(cfg.accelerator), neg_rw.to(cfg.accelerator))
+
+        if self.pecfg.norm:
+            pos_enc = torch.nn.functional.normalize(pos_enc)
         if self.encoder:
             pos_enc = self.encoder(pos_enc)
         if self.raw_norm:

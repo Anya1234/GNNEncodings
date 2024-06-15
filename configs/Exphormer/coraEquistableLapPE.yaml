@@ -11,7 +11,7 @@ dataset:
   task_type: classification
   transductive: False
   node_encoder: True
-  node_encoder_name: LinearNode
+  node_encoder_name: LinearNode+EquivStableLapPE
   node_encoder_bn: False
   edge_encoder: True
   edge_encoder_name: DummyEdge
@@ -21,14 +21,14 @@ prep:
   exp_deg: 3 # Algorithm will use 3 permutations or 3 Hamiltonian cycles, so actual degree will be 6
   add_self_loops: true
   num_virt_node: 0
-  train_percent: 0.1
-posenc_RWSE:
-  enable: False
-  kernel:
-    times_func: range(1,17)
-  model: Linear
-  dim_pe: 16
-  raw_norm_type: BatchNorm
+  train_percent: 0.6
+posenc_EquivStableLapPE:
+  enable: True
+  eigen:
+    laplacian_norm: none
+    eigvec_norm: L2
+    max_freqs: 10
+  raw_norm_type: none
 train:
   mode: custom
   batch_size: 1
@@ -40,7 +40,7 @@ model:
   edge_decoding: dot
   graph_pooling: add
 gt:
-  layer_type: GCN+Exphormer # some other options: Exphormer,CustomGatedGCN+Exphormer,  GINE+Exphormer, GINE, GINE__exp
+  layer_type: CustomGatedGCN+Exphormer # some other options: Exphormer,CustomGatedGCN+Exphormer,  GINE+Exphormer, GINE, GINE__exp
   layers: 4
   n_heads: 2
   dim_hidden: 80  # `gt.dim_hidden` must match `gnn.dim_inner`

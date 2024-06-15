@@ -22,7 +22,6 @@ posenc_Node2Vec:
   enable: True
   dim_pe: 16
   raw_norm_type: LayerNorm
-  model: linear
 train:
   mode: custom
   batch_size: 128

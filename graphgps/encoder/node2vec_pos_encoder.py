@@ -12,9 +12,14 @@ class Node2VecEncoder(nn.Module):
         pecfg = cfg.posenc_Node2Vec
         dim_in = cfg.share.dim_in
         dim_pe= pecfg.dim_pe
+        self.hid_dim = pecfg.hid_dim
 
         if pecfg.model == "Linear":
             self.encoder = nn.Linear(dim_pe, dim_pe)
+        elif pecfg.model == "FFN":
+             self.encoder = nn.Sequential(nn.Linear(dim_pe, self.hid_dim),
+                                          nn.ReLU(),
+                                          nn.Linear(self.hid_dim, dim_pe))
         else:
             self.encoder = None
 

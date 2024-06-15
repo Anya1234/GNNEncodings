@@ -24,6 +24,9 @@ prep:
   num_virt_node: 1 # Set True if you want to add global node connections beside expander edges
 posenc_Node2Vec:
   enable: True
+  dim_pe: 16
+  norm: True
+  model: linear
 train:
   mode: custom
   batch_size: 16
